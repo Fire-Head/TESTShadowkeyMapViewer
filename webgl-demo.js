@@ -346,11 +346,12 @@ MapViewer.prototype.init = function()
 	this.rec = false;
 	
 	this.playbackConfig = {  };
-	this.skinConfig = { DrawProps: true, DrawCelling: false, TransparentBackground: false, NearestFiltering: true, DbgBounds: false, Grid: false, ExportObj: this.expObj, ExportGLTF : this.expGLTF };
+	this.skinConfig = { DrawProps: true, DrawNPCs: true, DrawCelling: false, TransparentBackground: false, NearestFiltering: true, DbgBounds: false, Grid: false, ExportObj: this.expObj, ExportGLTF : this.expGLTF };
 	
 	this.gui = new dat.GUI();
 	
 	this.gui.add( this.skinConfig, 'DrawProps', true ).onChange( function (){} );
+	this.gui.add( this.skinConfig, 'DrawNPCs', true ).onChange( function (){} );
 	this.gui.add( this.skinConfig, 'DrawCelling', true ).onChange( function (){} );
 	this.gui.add( this.skinConfig, 'NearestFiltering', true ).onChange( function (){} );
 	this.gui.add( this.skinConfig, 'DbgBounds', true ).onChange( function (){} );
@@ -409,10 +410,10 @@ MapViewer.prototype.init = function()
 				{
 					let template = Number(line[0]);
 					let modelid = Number(line[1]);
-					let w = Number(line[2]);
-					let h = Number(line[3]);
+					let type = Number(line[2]);
+					let script = line[3];
 					
-					EntitiesMap[template] = new EntitieMap(modelid, w, h);
+					EntitiesMap[template] = new EntitieMap(modelid, type, script);
 				}
 			}
 		}
@@ -521,11 +522,11 @@ var Entities = null;
 var Models = new Array(256);
 var EntitiesMap = {};
 
-function EntitieMap(mid, w, h)
+function EntitieMap(mid, t, s)
 {
 	this.model = mid;
-	this.width = w;
-	this.height = h;
+	this.type = t;
+	this.script = s;
 };
 
 function ParseMesh(mdl, animid, id)
@@ -1025,6 +1026,13 @@ MapViewer.prototype.SetupScene = function()
 			if ( x >= 0 && y >= 0 && x <= pMap.width && y <= pMap.height )
 			{
 				var e = EntitiesMap[ent.template];
+				
+				if ( !this.skinConfig.DrawNPCs )
+				{
+					if ( e.type == 2 )
+						continue;
+				}
+				
 				if ( e )
 				{
 					///if ( ent.template == 10 || ent.template == 1050 ) // "!roof" || "!poolgook"
